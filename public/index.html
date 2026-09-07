@@ -14,7 +14,7 @@ h1{font-size:52px;line-height:1.03;margin:10px 0 14px;letter-spacing:-.035em}.le
 .page{display:none;padding:34px 0 70px}.page.active{display:block}.head{display:flex;justify-content:space-between;gap:20px;align-items:start;margin-bottom:20px}.head h2{font-size:32px;margin:5px 0}.head p{color:var(--muted);margin:0}
 .pill{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 11px;font-size:12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 .card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:23px}.field{margin-bottom:16px}label{display:block;font-size:13px;font-weight:760;margin-bottom:6px}
-.help,.small{font-size:12px;color:var(--muted);line-height:1.4}textarea{width:100%;min-height:85px;border:1px solid var(--line);border-radius:11px;padding:11px;font:inherit;resize:vertical}
+.help,.small{font-size:12px;color:var(--muted);line-height:1.4}.notice{margin-top:24px;border:1px solid var(--line);background:#fff;border-radius:14px;padding:16px 18px;font-size:12px;line-height:1.55;color:var(--muted)}.notice strong{color:var(--text)}.identity{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-bottom:14px;margin-bottom:18px;border-bottom:1px solid var(--line)}input[type="text"],textarea{width:100%;border:1px solid var(--line);border-radius:11px;padding:11px;font:inherit}textarea{min-height:85px;resize:vertical}.attempt{margin:10px 0 12px;font-size:12px;font-weight:750}.limit-reached{opacity:.55;cursor:not-allowed!important}
 button.primary{width:100%;border:0;background:#111;color:#fff;padding:14px;border-radius:11px;font-weight:800;cursor:pointer}.back{border:0;background:transparent;color:var(--muted);padding:0 0 12px;cursor:pointer}
 .upload{border:1.5px dashed #aaa;border-radius:14px;padding:25px;text-align:center;margin-bottom:16px;background:#fbfbf8}.result.empty{color:var(--muted);display:flex;align-items:center;justify-content:center;min-height:380px;text-align:center}
 .grade{font-size:55px;font-weight:950}.decision{font-size:38px;font-weight:950}.row{display:flex;align-items:center;gap:14px}.verdict{line-height:1.6}.metric{margin:13px 0}.mh{display:flex;justify-content:space-between;font-size:12px;font-weight:750}
@@ -27,6 +27,7 @@ button.primary{width:100%;border:0;background:#111;color:#fff;padding:14px;borde
 <main id="home"><div class="container hero">
 <div class="eyebrow">Joon Mahn Lee's Startup Evaluation</div><h1>Is your startup idea actually solid?</h1>
 <p class="lead">The standard gets tougher as the venture develops — from identifying a compelling opportunity to making a credible investment case.</p>
+<div class="notice"><strong>Submission & privacy notice.</strong> Stage 3 submissions, including uploaded PDFs, will be retained by the instructor for course administration and review. Stage 1 and Stage 2 submissions will be retained only when the evaluation receives an <strong>A</strong>. Submitted materials are processed by OpenAI to generate feedback. Do not include unnecessary sensitive personal information. Stage 2 and Stage 3 are limited to <strong>5 successful evaluations per student</strong>. By submitting, you acknowledge this course-use retention policy.</div>
 <div class="stages">
 <button class="stage" onclick="openStage('s1')"><div class="eyebrow">Stage 01</div><h3>Elevator Pitch</h3><p>One minute. Make the problem, customer pain, solution, and market potential clear.</p><div class="core">Problem → Pain → Solution → Market</div></button>
 <button class="stage" onclick="openStage('s2')"><div class="eyebrow">Stage 02</div><h3>Idea Development</h3><p>Show that the venture logic is beginning to hold up under evidence.</p><div class="core">Pain → Fit → Money → Evidence → Team</div></button>
@@ -36,6 +37,10 @@ button.primary{width:100%;border:0;background:#111;color:#fff;padding:14px;borde
 <section id="s1" class="page"><div class="container">
 <button class="back" onclick="home()">← Back</button><div class="head"><div><div class="eyebrow">Stage 01</div><h2>Elevator Pitch</h2><p>One minute. Only four things need to be clear.</p></div><div class="pill">Is this worth pursuing?</div></div>
 <div class="grid"><div class="card">
+<div class="identity">
+<div class="field" style="margin:0"><label>Your name</label><input type="text" id="studentName1" autocomplete="name"></div>
+<div class="field" style="margin:0"><label>Student ID</label><input type="text" id="studentId1" autocomplete="off"></div>
+</div>
 <div class="field"><label>1. What problem have you identified?</label><textarea id="s1problem"></textarea></div>
 <div class="field"><label>2. Who experiences this problem, and how painful is it?</label><textarea id="s1pain"></textarea></div>
 <div class="field"><label>3. How would you solve this problem?</label><p class="help">Explain your proposed solution and why it should address an important part of the problem. Keep it simple — this is still a one-minute pitch.</p><textarea id="s1solution"></textarea></div>
@@ -46,6 +51,11 @@ button.primary{width:100%;border:0;background:#111;color:#fff;padding:14px;borde
 <section id="s2" class="page"><div class="container">
 <button class="back" onclick="home()">← Back</button><div class="head"><div><div class="eyebrow">Stage 02</div><h2>Idea Development</h2><p>Now show that your core assumptions are becoming credible.</p></div><div class="pill">Pain → Fit → Money → Team</div></div>
 <div class="grid"><div class="card">
+<div class="identity">
+<div class="field" style="margin:0"><label>Your name</label><input type="text" id="studentName2" autocomplete="name"></div>
+<div class="field" style="margin:0"><label>Student ID</label><input type="text" id="studentId2" autocomplete="off"></div>
+</div>
+<div class="attempt" id="attempt2">Maximum 5 successful evaluations.</div>
 <div class="field"><label>1. Problem + evidence that the pain is real</label><textarea id="pEvidence"></textarea></div>
 <div class="field"><label>2. Root cause / core bottleneck</label><textarea id="rootCause"></textarea></div>
 <div class="field"><label>3. How does your solution attack it?</label><textarea id="solution2"></textarea></div>
@@ -53,17 +63,22 @@ button.primary{width:100%;border:0;background:#111;color:#fff;padding:14px;borde
 <div class="field"><label>5. How will the venture make money?</label><textarea id="model2"></textarea></div>
 <div class="field"><label>6. What have you tested, and what changed your mind?</label><textarea id="learning2"></textarea></div>
 <div class="field"><label>7. Why is your team a good fit?</label><textarea id="team2"></textarea></div>
-<button class="primary" onclick="eval2()">Evaluate My Venture</button></div>
+<button class="primary" id="submit2" onclick="eval2()">Evaluate My Venture</button></div>
 <div class="card result empty" id="r2">Your evaluation will appear here.</div></div></div></section>
 
 <section id="s3" class="page"><div class="container">
 <button class="back" onclick="home()">← Back</button><div class="head"><div><div class="eyebrow">Stage 03</div><h2>Final Presentation</h2><p>Save your final slides as PDF and upload them here.</p></div><div class="pill">Would I invest?</div></div>
 <div class="grid"><div class="card">
+<div class="identity">
+<div class="field" style="margin:0"><label>Your name</label><input type="text" id="studentName3" autocomplete="name"></div>
+<div class="field" style="margin:0"><label>Student ID</label><input type="text" id="studentId3" autocomplete="off"></div>
+</div>
+<div class="attempt" id="attempt3">Maximum 5 successful evaluations.</div>
 <div class="upload"><strong>Final Presentation PDF</strong><br><span class="small">PDF only for version 1 · max 25 MB</span><br><br><input id="deck" type="file" accept=".pdf,application/pdf"></div>
 <div class="field"><label>Optional: Single most important point</label><textarea id="mainPoint"></textarea></div>
 <div class="field"><label>Optional: Current team</label><textarea id="team3"></textarea></div>
 <div class="field"><label>Optional: Important information omitted from deck</label><textarea id="omitted3"></textarea></div>
-<button class="primary" onclick="eval3()">Evaluate Like a VC</button></div>
+<button class="primary" id="submit3" onclick="eval3()">Evaluate Like a VC</button></div>
 <div class="card result empty" id="r3">Your investment-committee evaluation will appear here.</div></div></div></section>
 
 <script>
@@ -75,29 +90,54 @@ function metric(name,val,max){return `<div class="metric"><div class="mh"><span>
 function loading(id){qs(id).className='card result';qs(id).innerHTML='<div class="loading">Evaluating…</div>'}
 function error(id,e){qs(id).className='card result';qs(id).innerHTML=`<p><strong>Could not evaluate.</strong></p><p class="small">${esc(e)}</p>`}
 async function postJSON(url,body){let r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});let j=await r.json();if(!r.ok)throw new Error(j.error||'Request failed');return j}
+const ATTEMPT_LIMIT=5;
+function normId(v){return String(v||'').trim().toLowerCase()}
+function attemptKey(stage,id){return `jml_${stage}_attempts_${normId(id)}`}
+function localAttempts(stage,id){return Number(localStorage.getItem(attemptKey(stage,id))||0)}
+function setLocalAttempts(stage,id,n){localStorage.setItem(attemptKey(stage,id),String(Math.max(0,n)))}
+function refreshAttempt(stage){
+ const is2=stage===2, id=qs(is2?'studentId2':'studentId3').value, el=qs(is2?'attempt2':'attempt3'), btn=qs(is2?'submit2':'submit3');
+ if(!normId(id)){el.textContent='Maximum 5 successful evaluations.';btn.disabled=false;btn.classList.remove('limit-reached');return}
+ const used=localAttempts(stage,id), rem=Math.max(0,ATTEMPT_LIMIT-used);
+ el.textContent=`Attempts used on this browser: ${used} / ${ATTEMPT_LIMIT} · ${rem} remaining`;
+ btn.disabled=used>=ATTEMPT_LIMIT;btn.classList.toggle('limit-reached',used>=ATTEMPT_LIMIT);
+}
+qs('studentId2').addEventListener('input',()=>refreshAttempt(2));
+qs('studentId3').addEventListener('input',()=>refreshAttempt(3));
 
 async function eval1(){
+ const studentName=qs('studentName1').value, studentId=qs('studentId1').value;
+ if(!studentName.trim()||!studentId.trim()){error('r1','Please enter your name and student ID.');return}
  loading('r1');
  try{
-  const d=await postJSON('/api/stage1',{problem:qs('s1problem').value,pain:qs('s1pain').value,market:qs('s1market').value,solution:qs('s1solution').value});
-  qs('r1').innerHTML=`<div class="eyebrow">JML Evaluation</div><div class="row"><div class="grade">${d.grade}</div><div><strong>${d.score} / 100</strong></div></div><p class="verdict">${esc(d.verdict)}</p>${metric('Problem',d.problem,10)}${metric('Customer Pain',d.pain,10)}${metric('Solution Logic',d.solution_logic,10)}${metric('Market & Venture Potential',d.market,10)}<div class="call"><h4>KRW 200B Potential</h4><p><strong>${esc(d.scale_test)}</strong></p></div><div class="call"><h4>The One Thing to Clarify Next</h4><p>${esc(d.next_question)}</p></div>`;
+  const d=await postJSON('/api/stage1',{studentName,studentId,problem:qs('s1problem').value,pain:qs('s1pain').value,market:qs('s1market').value,solution:qs('s1solution').value});
+  qs('r1').innerHTML=`<div class="eyebrow">JML Evaluation</div><div class="row"><div class="grade">${d.grade}</div><div><strong>${d.score} / 100</strong></div></div><p class="verdict">${esc(d.verdict)}</p>${metric('Problem',d.problem,10)}${metric('Customer Pain',d.pain,10)}${metric('Solution Logic',d.solution_logic,10)}${metric('Market & Venture Potential',d.market,10)}<div class="call"><h4>KRW 200B Potential</h4><p><strong>${esc(d.scale_test)}</strong></p></div><div class="call"><h4>The One Thing to Clarify Next</h4><p>${esc(d.next_question)}</p></div><div class="call"><h4>Submission Status</h4><p>${d._archived?'This A-rated Stage 1 submission was retained in the course archive.':'Stage 1 content is retained only when the evaluation receives an A.'}</p></div>`;
  }catch(e){error('r1',e.message)}
 }
 async function eval2(){
+ const studentId=qs('studentId2').value, studentName=qs('studentName2').value;
+ if(!studentName.trim()||!studentId.trim()){error('r2','Please enter your name and student ID.');return}
+ if(localAttempts(2,studentId)>=ATTEMPT_LIMIT){error('r2','You have reached the maximum of 5 successful Stage 2 evaluations on this browser.');refreshAttempt(2);return}
  loading('r2');
  try{
-  const d=await postJSON('/api/stage2',{problemEvidence:qs('pEvidence').value,rootCause:qs('rootCause').value,solution:qs('solution2').value,market:qs('market2').value,businessModel:qs('model2').value,learning:qs('learning2').value,team:qs('team2').value});
-  qs('r2').innerHTML=`<div class="eyebrow">JML Evaluation</div><div class="row"><div class="grade">${d.grade}</div><div><strong>${d.score} / 100</strong></div></div><p class="verdict">${esc(d.verdict)}</p>${metric('Problem & Pain',d.problem_pain,20)}${metric('Problem–Solution Fit',d.problem_solution_fit,25)}${metric('Market & Scale',d.market_scale,20)}${metric('Business Model',d.business_model,15)}${metric('Evidence & Learning',d.evidence_learning,10)}${metric('Team–Venture Fit',d.team_fit_score,10)}<div class="call"><h4>KRW 200B Venture Test</h4><p><strong>${esc(d.scale_test)}</strong></p></div><div class="call"><h4>Biggest Concern</h4><p>${esc(d.biggest_concern)}</p></div><div class="call"><h4>Team–Venture Fit</h4><p><strong>${esc(d.team_fit)}</strong> — ${esc(d.team_fit_explanation)}<br>Missing: ${esc(d.missing_capability)}</p></div><div class="call"><h4>Venture-Killing Assumption</h4><p>This venture fails if ${esc(d.venture_killing_assumption)}</p></div><div class="call"><h4>What Would Move This Up?</h4><ol>${d.move_up.map(x=>`<li>${esc(x)}</li>`).join('')}</ol></div><div class="call"><h4>VC Question</h4><p>${esc(d.vc_question)}</p></div>`;
+  const d=await postJSON('/api/stage2',{studentName,studentId,problemEvidence:qs('pEvidence').value,rootCause:qs('rootCause').value,solution:qs('solution2').value,market:qs('market2').value,businessModel:qs('model2').value,learning:qs('learning2').value,team:qs('team2').value});
+  const used=d._attemptsUsed??(localAttempts(2,studentId)+1);setLocalAttempts(2,studentId,used);refreshAttempt(2);
+  qs('r2').innerHTML=`<div class="eyebrow">JML Evaluation</div><div class="row"><div class="grade">${d.grade}</div><div><strong>${d.score} / 100</strong></div></div><p class="verdict">${esc(d.verdict)}</p>${metric('Problem & Pain',d.problem_pain,20)}${metric('Problem–Solution Fit',d.problem_solution_fit,25)}${metric('Market & Scale',d.market_scale,20)}${metric('Business Model',d.business_model,15)}${metric('Evidence & Learning',d.evidence_learning,10)}${metric('Team–Venture Fit',d.team_fit_score,10)}<div class="call"><h4>KRW 200B Venture Test</h4><p><strong>${esc(d.scale_test)}</strong></p></div><div class="call"><h4>Biggest Concern</h4><p>${esc(d.biggest_concern)}</p></div><div class="call"><h4>Team–Venture Fit</h4><p><strong>${esc(d.team_fit)}</strong> — ${esc(d.team_fit_explanation)}<br>Missing: ${esc(d.missing_capability)}</p></div><div class="call"><h4>Venture-Killing Assumption</h4><p>This venture fails if ${esc(d.venture_killing_assumption)}</p></div><div class="call"><h4>What Would Move This Up?</h4><ol>${d.move_up.map(x=>`<li>${esc(x)}</li>`).join('')}</ol></div><div class="call"><h4>VC Question</h4><p>${esc(d.vc_question)}</p></div><div class="call"><h4>Submission Status</h4><p>${d._archived?'This A-rated Stage 2 submission was retained in the course archive.':'Stage 2 content is retained only when the evaluation receives an A.'}${d._attemptsRemaining!==null&&d._attemptsRemaining!==undefined?` ${d._attemptsRemaining} Stage 2 attempt(s) remaining.`:''}</p></div>`;
  }catch(e){error('r2',e.message)}
 }
 async function eval3(){
+ const studentId=qs('studentId3').value, studentName=qs('studentName3').value;
+ if(!studentName.trim()||!studentId.trim()){error('r3','Please enter your name and student ID.');return}
+ if(localAttempts(3,studentId)>=ATTEMPT_LIMIT){error('r3','You have reached the maximum of 5 successful Stage 3 evaluations on this browser.');refreshAttempt(3);return}
  loading('r3');
  try{
   const f=qs('deck').files[0];if(!f)throw new Error('Please select a PDF first.');
-  const fd=new FormData();fd.append('deck',f);fd.append('mainPoint',qs('mainPoint').value);fd.append('team',qs('team3').value);fd.append('omitted',qs('omitted3').value);
+  const fd=new FormData();fd.append('deck',f);fd.append('studentName',studentName);fd.append('studentId',studentId);fd.append('mainPoint',qs('mainPoint').value);fd.append('team',qs('team3').value);fd.append('omitted',qs('omitted3').value);
   const r=await fetch('/api/stage3',{method:'POST',body:fd});const d=await r.json();if(!r.ok)throw new Error(d.error||'Request failed');
-  qs('r3').innerHTML=`<div class="eyebrow">Investment Committee View</div><div class="row"><div class="decision">${esc(d.decision)}</div><div><strong>${d.score} / 100 — ${d.grade}</strong></div></div><p class="verdict">${esc(d.verdict)}</p>${metric('Opportunity Validation',d.opportunity_validation,12)}${metric('Solution Logic',d.solution_logic,12)}${metric('Market & Positioning',d.market_positioning,15)}${metric('Business & Economics',d.business_economics,15)}${metric('GTM & Execution',d.gtm_execution,10)}${metric('Defensibility',d.defensibility,8)}${metric('Team–Venture Fit',d.team_fit_score,10)}${metric('Risk Awareness',d.risk_awareness,8)}${metric('Strategic Coherence',d.coherence,5)}${metric('Presentation',d.presentation,5)}<div class="call"><h4>KRW 200B Venture Test</h4><p><strong>${esc(d.scale_test)}</strong></p></div><div class="call"><h4>Investment Thesis</h4><p>${esc(d.investment_thesis)}</p></div><div class="call"><h4>Biggest Concern</h4><p>${esc(d.biggest_concern)}</p></div><div class="call"><h4>Team–Venture Fit</h4><p><strong>${esc(d.team_fit)}</strong> — ${esc(d.team_fit_explanation)}<br>Missing: ${esc(d.missing_capability)}</p></div><div class="call"><h4>Venture-Killing Assumption</h4><p>This venture fails if ${esc(d.venture_killing_assumption)}</p></div><div class="call"><h4>Three Things Needed Before I Invest</h4><ol>${d.before_invest.map(x=>`<li>${esc(x)}</li>`).join('')}</ol></div><div class="call"><h4>Investment Committee Questions</h4><ol>${d.ic_questions.map(x=>`<li>${esc(x)}</li>`).join('')}</ol></div>`;
+  const used=d._attemptsUsed??(localAttempts(3,studentId)+1);setLocalAttempts(3,studentId,used);refreshAttempt(3);
+  qs('r3').innerHTML=`<div class="eyebrow">Investment Committee View</div><div class="row"><div class="decision">${esc(d.decision)}</div><div><strong>${d.score} / 100 — ${d.grade}</strong></div></div><p class="verdict">${esc(d.verdict)}</p>${metric('Opportunity Validation',d.opportunity_validation,12)}${metric('Solution Logic',d.solution_logic,12)}${metric('Market & Positioning',d.market_positioning,15)}${metric('Business & Economics',d.business_economics,15)}${metric('GTM & Execution',d.gtm_execution,10)}${metric('Defensibility',d.defensibility,8)}${metric('Team–Venture Fit',d.team_fit_score,10)}${metric('Risk Awareness',d.risk_awareness,8)}${metric('Strategic Coherence',d.coherence,5)}${metric('Presentation',d.presentation,5)}<div class="call"><h4>KRW 200B Venture Test</h4><p><strong>${esc(d.scale_test)}</strong></p></div><div class="call"><h4>Investment Thesis</h4><p>${esc(d.investment_thesis)}</p></div><div class="call"><h4>Biggest Concern</h4><p>${esc(d.biggest_concern)}</p></div><div class="call"><h4>Team–Venture Fit</h4><p><strong>${esc(d.team_fit)}</strong> — ${esc(d.team_fit_explanation)}<br>Missing: ${esc(d.missing_capability)}</p></div><div class="call"><h4>Venture-Killing Assumption</h4><p>This venture fails if ${esc(d.venture_killing_assumption)}</p></div><div class="call"><h4>Three Things Needed Before I Invest</h4><ol>${d.before_invest.map(x=>`<li>${esc(x)}</li>`).join('')}</ol></div><div class="call"><h4>Investment Committee Questions</h4><ol>${d.ic_questions.map(x=>`<li>${esc(x)}</li>`).join('')}</ol></div><div class="call"><h4>Submission Status</h4><p>${d._archived?'PDF and evaluation retained in the course submission archive.':'Evaluation completed. Archive storage is not yet connected.'}${d._attemptsRemaining!==null&&d._attemptsRemaining!==undefined?` ${d._attemptsRemaining} Stage 3 attempt(s) remaining.`:''}</p></div>`;
  }catch(e){error('r3',e.message)}
 }
+refreshAttempt(2);refreshAttempt(3);
 </script>
 </body></html>
