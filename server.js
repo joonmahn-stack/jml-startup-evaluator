@@ -2,6 +2,7 @@ import express from "express";
 import multer from "multer";
 import dotenv from "dotenv";
 import OpenAI, { toFile } from "openai";
+import { S3Client, PutObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -13,6 +14,108 @@ if (!process.env.OPENAI_API_KEY) {
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const MODEL = process.env.OPENAI_MODEL || "gpt-5.6-terra";
+
+const MAX_STAGE_ATTEMPTS = 5;
+
+// Optional persistent archive / authoritative attempt tracking.
+// Railway Storage Bucket auto-injected variables are supported, along with AWS-style aliases.
+const BUCKET_ENDPOINT = process.env.BUCKET_ENDPOINT || process.env.ENDPOINT || process.env.AWS_ENDPOINT_URL || "";
+const BUCKET_ACCESS_KEY_ID = process.env.BUCKET_ACCESS_KEY_ID || process.env.ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID || "";
+const BUCKET_SECRET_ACCESS_KEY = process.env.BUCKET_SECRET_ACCESS_KEY || process.env.SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY || "";
+const BUCKET_NAME = process.env.BUCKET_NAME || process.env.BUCKET || process.env.AWS_S3_BUCKET_NAME || "";
+const BUCKET_REGION = process.env.BUCKET_REGION || process.env.REGION || process.env.AWS_DEFAULT_REGION || "auto";
+
+const archiveEnabled = Boolean(BUCKET_ENDPOINT && BUCKET_ACCESS_KEY_ID && BUCKET_SECRET_ACCESS_KEY && BUCKET_NAME);
+const s3 = archiveEnabled ? new S3Client({
+  region: BUCKET_REGION,
+  endpoint: BUCKET_ENDPOINT,
+  credentials: {
+    accessKeyId: BUCKET_ACCESS_KEY_ID,
+    secretAccessKey: BUCKET_SECRET_ACCESS_KEY
+  },
+  forcePathStyle: false
+}) : null;
+
+if (!archiveEnabled) {
+  console.warn("Submission archive is not configured. Stage 2/3 will still have a same-browser 5-attempt limit, but server-side cross-device enforcement and selective retention will be inactive.");
+}
+
+function normalizedStudentId(value) {
+  return String(value || "").trim().toLowerCase();
+}
+function safePart(value, fallback = "student") {
+  const cleaned = String(value || "").trim()
+    .replace(/[^a-zA-Z0-9._-]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 80);
+  return cleaned || fallback;
+}
+function studentPrefix(studentId) {
+  return `submissions/${safePart(normalizedStudentId(studentId), "unknown")}`;
+}
+function attemptPrefix(studentId, stage) {
+  return `attempts/${safePart(normalizedStudentId(studentId), "unknown")}/${stage}/`;
+}
+async function countAttempts(studentId, stage) {
+  if (!archiveEnabled) return null;
+  const out = await s3.send(new ListObjectsV2Command({
+    Bucket: BUCKET_NAME,
+    Prefix: attemptPrefix(studentId, stage),
+    MaxKeys: 100
+  }));
+  return (out.Contents || []).filter(x => String(x.Key || "").endsWith(".json")).length;
+}
+async function ensureAttemptAvailable(studentId, stage) {
+  const used = await countAttempts(studentId, stage);
+  if (used !== null && used >= MAX_STAGE_ATTEMPTS) {
+    const err = new Error(`You have reached the maximum of ${MAX_STAGE_ATTEMPTS} successful evaluations for ${stage === "stage2" ? "Stage 2" : "Stage 3"}.`);
+    err.statusCode = 429;
+    throw err;
+  }
+  return used;
+}
+async function archiveJson(key, payload) {
+  if (!archiveEnabled) return false;
+  await s3.send(new PutObjectCommand({
+    Bucket: BUCKET_NAME,
+    Key: key,
+    Body: Buffer.from(JSON.stringify(payload, null, 2), "utf-8"),
+    ContentType: "application/json; charset=utf-8"
+  }));
+  return true;
+}
+async function archivePdf(key, buffer) {
+  if (!archiveEnabled) return false;
+  await s3.send(new PutObjectCommand({
+    Bucket: BUCKET_NAME,
+    Key: key,
+    Body: buffer,
+    ContentType: "application/pdf"
+  }));
+  return true;
+}
+async function recordAttempt(studentId, stage, studentName, submittedAt) {
+  if (!archiveEnabled) return false;
+  const key = `${attemptPrefix(studentId, stage)}${submittedAt.replace(/[:.]/g, "-")}.json`;
+  await archiveJson(key, {
+    stage: stage === "stage2" ? 2 : 3,
+    submittedAt,
+    studentName,
+    studentId,
+    successfulEvaluation: true
+  });
+  return true;
+}
+function attemptMeta(result, usedBefore) {
+  const used = usedBefore === null ? null : usedBefore + 1;
+  return {
+    ...result,
+    _archiveEnabled: archiveEnabled,
+    _attemptsUsed: used,
+    _attemptsRemaining: used === null ? null : Math.max(0, MAX_STAGE_ATTEMPTS - used),
+    _attemptLimit: MAX_STAGE_ATTEMPTS
+  };
+}
 const app = express();
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -259,8 +362,11 @@ async function structuredEval(instructions, input, schema, schemaName) {
 
 app.post("/api/stage1", async (req, res) => {
   try {
-    const { problem, pain, solution, market } = req.body;
-    if (!problem || !pain || !solution || !market) return res.status(400).json({ error: "Please answer all four Stage 1 questions." });
+    const { studentName, studentId, problem, pain, solution, market } = req.body;
+    if (!studentName || !studentId || !problem || !pain || !solution || !market) {
+      return res.status(400).json({ error: "Please enter your name, student ID, and answer all four Stage 1 questions." });
+    }
+
     const input = `Evaluate this one-minute elevator pitch.
 
 PROBLEM:
@@ -274,7 +380,30 @@ ${solution}
 
 LARGE OPPORTUNITY:
 ${market}`;
-    res.json(await structuredEval(STAGE1, input, stage1Schema, "jml_stage1"));
+
+    const result = await structuredEval(STAGE1, input, stage1Schema, "jml_stage1");
+    const now = new Date().toISOString();
+    let archived = false;
+
+    if (archiveEnabled && result.grade === "A") {
+      const key = `${studentPrefix(studentId)}/stage1/${now.replace(/[:.]/g, "-")}.json`;
+      await archiveJson(key, {
+        stage: 1,
+        submittedAt: now,
+        studentName,
+        studentId,
+        input: { problem, pain, solution, market },
+        evaluation: result
+      });
+      archived = true;
+    }
+
+    res.json({
+      ...result,
+      _archiveEnabled: archiveEnabled,
+      _archived: archived,
+      _archivePolicy: "A_ONLY"
+    });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: e?.message || "Evaluation failed." });
@@ -283,9 +412,11 @@ ${market}`;
 
 app.post("/api/stage2", async (req, res) => {
   try {
-    const required = ["problemEvidence","rootCause","solution","market","businessModel","learning","team"];
-    for (const k of required) if (!req.body[k]) return res.status(400).json({ error: "Please complete all Stage 2 questions." });
+    const required = ["studentName","studentId","problemEvidence","rootCause","solution","market","businessModel","learning","team"];
+    for (const k of required) if (!req.body[k]) return res.status(400).json({ error: "Please complete your name, student ID, and all Stage 2 questions." });
     const b = req.body;
+    const usedBefore = await ensureAttemptAvailable(b.studentId, "stage2");
+
     const input = `Evaluate this Stage 2 venture.
 
 1. PROBLEM + EVIDENCE:
@@ -308,20 +439,61 @@ ${b.learning}
 
 7. TEAM–VENTURE FIT:
 ${b.team}`;
-    res.json(await structuredEval(STAGE2, input, stage2Schema, "jml_stage2"));
+
+    const result = await structuredEval(STAGE2, input, stage2Schema, "jml_stage2");
+    const now = new Date().toISOString();
+    let archived = false;
+
+    if (archiveEnabled) {
+      // Minimal marker only, to enforce the 5-attempt rule across devices.
+      // Non-A Stage 2 answers are not retained.
+      await recordAttempt(b.studentId, "stage2", b.studentName, now);
+
+      if (result.grade === "A") {
+        const key = `${studentPrefix(b.studentId)}/stage2/${now.replace(/[:.]/g, "-")}.json`;
+        await archiveJson(key, {
+          stage: 2,
+          submittedAt: now,
+          studentName: b.studentName,
+          studentId: b.studentId,
+          input: {
+            problemEvidence: b.problemEvidence,
+            rootCause: b.rootCause,
+            solution: b.solution,
+            market: b.market,
+            businessModel: b.businessModel,
+            learning: b.learning,
+            team: b.team
+          },
+          evaluation: result
+        });
+        archived = true;
+      }
+    }
+
+    res.json({
+      ...attemptMeta(result, usedBefore),
+      _archived: archived,
+      _archivePolicy: "A_ONLY"
+    });
   } catch (e) {
     console.error(e);
-    res.status(500).json({ error: e?.message || "Evaluation failed." });
+    res.status(e?.statusCode || 500).json({ error: e?.message || "Evaluation failed." });
   }
 });
 
 app.post("/api/stage3", upload.single("deck"), async (req, res) => {
   let uploadedFileId = null;
   try {
+    if (!req.body.studentName || !req.body.studentId) {
+      return res.status(400).json({ error: "Please enter your name and student ID." });
+    }
     if (!req.file) return res.status(400).json({ error: "Please upload a PDF." });
     if (req.file.mimetype !== "application/pdf" && !req.file.originalname.toLowerCase().endsWith(".pdf")) {
-      return res.status(400).json({ error: "For version 1, please upload the final deck as PDF." });
+      return res.status(400).json({ error: "Please upload the final deck as PDF." });
     }
+
+    const usedBefore = await ensureAttemptAvailable(req.body.studentId, "stage3");
 
     const f = await openai.files.create({
       file: await toFile(req.file.buffer, req.file.originalname),
@@ -351,10 +523,40 @@ Read and evaluate the attached final presentation PDF.`;
     }];
 
     const result = await structuredEval(STAGE3, input, stage3Schema, "jml_stage3");
-    res.json(result);
+    const now = new Date().toISOString();
+    let archived = false;
+
+    if (archiveEnabled) {
+      const stamp = now.replace(/[:.]/g, "-");
+      const base = `${studentPrefix(req.body.studentId)}/stage3/${stamp}`;
+      const pdfName = safePart(req.file.originalname.replace(/\.pdf$/i, ""), "deck") + ".pdf";
+
+      await archivePdf(`${base}-${pdfName}`, req.file.buffer);
+      await archiveJson(`${base}.json`, {
+        stage: 3,
+        submittedAt: now,
+        studentName: req.body.studentName,
+        studentId: req.body.studentId,
+        originalFilename: req.file.originalname,
+        context: {
+          mainPoint: req.body.mainPoint || "",
+          team: req.body.team || "",
+          omitted: req.body.omitted || ""
+        },
+        evaluation: result
+      });
+      await recordAttempt(req.body.studentId, "stage3", req.body.studentName, now);
+      archived = true;
+    }
+
+    res.json({
+      ...attemptMeta(result, usedBefore),
+      _archived: archived,
+      _archivePolicy: "ALL"
+    });
   } catch (e) {
     console.error(e);
-    res.status(500).json({ error: e?.message || "Evaluation failed." });
+    res.status(e?.statusCode || 500).json({ error: e?.message || "Evaluation failed." });
   } finally {
     if (uploadedFileId) {
       try { await openai.files.delete(uploadedFileId); } catch {}
@@ -362,7 +564,7 @@ Read and evaluate the attached final presentation PDF.`;
   }
 });
 
-app.get("/api/health", (_, res) => res.json({ ok: true, model: MODEL }));
+app.get("/api/health", (_, res) => res.json({ ok: true, model: MODEL, archiveEnabled, attemptLimit: MAX_STAGE_ATTEMPTS }));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`JML Startup Evaluator running on http://localhost:${PORT}`));
