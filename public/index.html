@@ -28,18 +28,18 @@ button.primary{width:100%;border:0;background:#111;color:#fff;padding:14px;borde
 <div class="eyebrow">Joon Mahn Lee's Startup Evaluation</div><h1>Is your startup idea actually solid?</h1>
 <p class="lead">The standard gets tougher as the venture develops — from identifying a compelling opportunity to making a credible investment case.</p>
 <div class="stages">
-<button class="stage" onclick="openStage('s1')"><div class="eyebrow">Stage 01</div><h3>Elevator Pitch</h3><p>One minute. Make the problem, customer pain, and market potential clear.</p><div class="core">Problem → Pain → Market</div></button>
+<button class="stage" onclick="openStage('s1')"><div class="eyebrow">Stage 01</div><h3>Elevator Pitch</h3><p>One minute. Make the problem, customer pain, solution, and market potential clear.</p><div class="core">Problem → Pain → Solution → Market</div></button>
 <button class="stage" onclick="openStage('s2')"><div class="eyebrow">Stage 02</div><h3>Idea Development</h3><p>Show that the venture logic is beginning to hold up under evidence.</p><div class="core">Pain → Fit → Money → Evidence → Team</div></button>
 <button class="stage" onclick="openStage('s3')"><div class="eyebrow">Stage 03</div><h3>Final Presentation</h3><p>Upload your final PDF. The evaluator reads it like a VC investment committee.</p><div class="core">Would I invest?</div></button>
 </div></div></main>
 
 <section id="s1" class="page"><div class="container">
-<button class="back" onclick="home()">← Back</button><div class="head"><div><div class="eyebrow">Stage 01</div><h2>Elevator Pitch</h2><p>One minute. Only three things need to be clear.</p></div><div class="pill">Is this worth pursuing?</div></div>
+<button class="back" onclick="home()">← Back</button><div class="head"><div><div class="eyebrow">Stage 01</div><h2>Elevator Pitch</h2><p>One minute. Only four things need to be clear.</p></div><div class="pill">Is this worth pursuing?</div></div>
 <div class="grid"><div class="card">
 <div class="field"><label>1. What problem have you identified?</label><textarea id="s1problem"></textarea></div>
 <div class="field"><label>2. Who experiences this problem, and how painful is it?</label><textarea id="s1pain"></textarea></div>
-<div class="field"><label>3. Why could this become a large opportunity?</label><textarea id="s1market"></textarea></div>
-<div class="field"><label>Optional: Rough solution</label><textarea id="s1solution"></textarea></div>
+<div class="field"><label>3. How would you solve this problem?</label><p class="help">Explain your proposed solution and why it should address an important part of the problem. Keep it simple — this is still a one-minute pitch.</p><textarea id="s1solution"></textarea></div>
+<div class="field"><label>4. Why could this become a large opportunity?</label><textarea id="s1market"></textarea></div>
 <button class="primary" onclick="eval1()">Evaluate My Opportunity</button></div>
 <div class="card result empty" id="r1">Your evaluation will appear here.</div></div></div></section>
 
@@ -80,7 +80,7 @@ async function eval1(){
  loading('r1');
  try{
   const d=await postJSON('/api/stage1',{problem:qs('s1problem').value,pain:qs('s1pain').value,market:qs('s1market').value,solution:qs('s1solution').value});
-  qs('r1').innerHTML=`<div class="eyebrow">JML Evaluation</div><div class="row"><div class="grade">${d.grade}</div><div><strong>${d.score} / 100</strong></div></div><p class="verdict">${esc(d.verdict)}</p>${metric('Problem',d.problem,10)}${metric('Customer Pain',d.pain,10)}${metric('Market & Venture Potential',d.market,10)}<div class="call"><h4>KRW 200B Potential</h4><p><strong>${esc(d.scale_test)}</strong></p></div><div class="call"><h4>The One Thing to Clarify Next</h4><p>${esc(d.next_question)}</p></div>`;
+  qs('r1').innerHTML=`<div class="eyebrow">JML Evaluation</div><div class="row"><div class="grade">${d.grade}</div><div><strong>${d.score} / 100</strong></div></div><p class="verdict">${esc(d.verdict)}</p>${metric('Problem',d.problem,10)}${metric('Customer Pain',d.pain,10)}${metric('Solution Logic',d.solution_logic,10)}${metric('Market & Venture Potential',d.market,10)}<div class="call"><h4>KRW 200B Potential</h4><p><strong>${esc(d.scale_test)}</strong></p></div><div class="call"><h4>The One Thing to Clarify Next</h4><p>${esc(d.next_question)}</p></div>`;
  }catch(e){error('r1',e.message)}
 }
 async function eval2(){

@@ -34,11 +34,12 @@ const stage1Schema = {
     verdict: { type: "string" },
     problem: { type: "integer", minimum: 0, maximum: 10 },
     pain: { type: "integer", minimum: 0, maximum: 10 },
+    solution_logic: { type: "integer", minimum: 0, maximum: 10 },
     market: { type: "integer", minimum: 0, maximum: 10 },
     scale_test: { type: "string", enum: ["PLAUSIBLE","POSSIBLE, BUT UNCLEAR","UNLIKELY"] },
     next_question: { type: "string" }
   },
-  required: ["grade","score","verdict","problem","pain","market","scale_test","next_question"]
+  required: ["grade","score","verdict","problem","pain","solution_logic","market","scale_test","next_question"]
 };
 
 const stage2Schema = {
@@ -125,12 +126,22 @@ const STAGE1 = COMMON + `
 STAGE 1 — ELEVATOR PITCH.
 This is a ONE-MINUTE pitch. Be intentionally forgiving.
 The question is: "Is this opportunity worth pursuing? Do I want to hear more?"
-ONLY THREE scored dimensions matter:
-1) Problem — 30 points conceptually.
-2) Customer & Pain — 30 points.
-3) Market & Venture Potential — 40 points.
-Do NOT penalize missing pricing, GTM, moat, financials, risks, or Team–Venture Fit.
-A rough solution may help qualitatively but is optional.
+
+FOUR scored dimensions matter:
+1) Problem — 25 points conceptually.
+2) Customer & Pain — 25 points.
+3) Solution Logic — 20 points.
+4) Market & Venture Potential — 30 points.
+
+SOLUTION CALIBRATION:
+- The proposed solution is REQUIRED, but evaluate it lightly because this is only a one-minute elevator pitch.
+- Do NOT require detailed product design, technical feasibility evidence, validation, defensibility, pricing, or implementation detail.
+- A clear and plausible solution concept is sufficient.
+- Ask only whether the proposed solution is logically connected to the problem and appears capable of addressing an important part of the pain.
+- Do not apply Stage 2-level problem–solution-fit standards here.
+
+Do NOT penalize missing GTM, moat, financials, risks, or Team–Venture Fit.
+
 Use a classroom-friendly scoring distribution.
 A = 82-100: clearly compelling for a one-minute pitch; I definitely want to hear more.
 B = 68-81: promising and worth developing.
@@ -142,9 +153,10 @@ IMPORTANT SCORING CALIBRATION:
 - Do not treat missing detail as a flaw unless it should reasonably be present in a one-minute pitch.
 - Reward clarity and upside potential even when evidence is still preliminary.
 - Critical comments may still be sharp even when the score is B or A.
-- A strong idea should not be pushed down simply because monetization, moat, team, or GTM are not yet fully developed.
+- A strong idea should not be pushed down simply because monetization, moat, team, GTM, or technical validation are not yet developed.
+- Market remains the most important single dimension because venture-scale potential matters.
 
-Return 0-10 display scores for Problem, Pain, and Market, plus a 0-100 total.
+Return 0-10 display scores for Problem, Pain, Solution Logic, and Market, plus a 0-100 total.
 Keep the verdict short and give exactly one next question.
 `;
 
@@ -247,8 +259,8 @@ async function structuredEval(instructions, input, schema, schemaName) {
 
 app.post("/api/stage1", async (req, res) => {
   try {
-    const { problem, pain, market, solution = "" } = req.body;
-    if (!problem || !pain || !market) return res.status(400).json({ error: "Please answer the three required questions." });
+    const { problem, pain, solution, market } = req.body;
+    if (!problem || !pain || !solution || !market) return res.status(400).json({ error: "Please answer all four Stage 1 questions." });
     const input = `Evaluate this one-minute elevator pitch.
 
 PROBLEM:
@@ -257,11 +269,11 @@ ${problem}
 CUSTOMER & PAIN:
 ${pain}
 
-LARGE OPPORTUNITY:
-${market}
+PROPOSED SOLUTION:
+${solution}
 
-OPTIONAL ROUGH SOLUTION:
-${solution || "(not provided)"}`;
+LARGE OPPORTUNITY:
+${market}`;
     res.json(await structuredEval(STAGE1, input, stage1Schema, "jml_stage1"));
   } catch (e) {
     console.error(e);
