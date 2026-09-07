@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Joon Mahn Lee's Startup Evaluation</title>
+<style>
+:root{--bg:#f5f5f2;--card:#fff;--text:#171717;--muted:#6d6d68;--line:#deded8;--soft:#efefe9}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+.container{max-width:1120px;margin:auto;padding:0 24px}.top{height:68px;display:flex;align-items:center;font-weight:850;border-bottom:1px solid var(--line)}
+.hero{padding:60px 0}.eyebrow{text-transform:uppercase;letter-spacing:.08em;font-size:11px;font-weight:850;color:var(--muted)}
+h1{font-size:52px;line-height:1.03;margin:10px 0 14px;letter-spacing:-.035em}.lead{font-size:17px;color:var(--muted);max-width:760px;line-height:1.55}
+.stages{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:34px}.stage{border:1px solid var(--line);background:#fff;border-radius:18px;padding:22px;text-align:left;cursor:pointer}
+.stage:hover{transform:translateY(-2px)}.stage h3{font-size:21px;margin:8px 0}.stage p{font-size:13px;color:var(--muted);line-height:1.5;min-height:58px}.core{border-top:1px solid var(--line);padding-top:14px;font-size:12px;font-weight:750}
+.page{display:none;padding:34px 0 70px}.page.active{display:block}.head{display:flex;justify-content:space-between;gap:20px;align-items:start;margin-bottom:20px}.head h2{font-size:32px;margin:5px 0}.head p{color:var(--muted);margin:0}
+.pill{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 11px;font-size:12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:23px}.field{margin-bottom:16px}label{display:block;font-size:13px;font-weight:760;margin-bottom:6px}
+.help,.small{font-size:12px;color:var(--muted);line-height:1.4}textarea{width:100%;min-height:85px;border:1px solid var(--line);border-radius:11px;padding:11px;font:inherit;resize:vertical}
+button.primary{width:100%;border:0;background:#111;color:#fff;padding:14px;border-radius:11px;font-weight:800;cursor:pointer}.back{border:0;background:transparent;color:var(--muted);padding:0 0 12px;cursor:pointer}
+.upload{border:1.5px dashed #aaa;border-radius:14px;padding:25px;text-align:center;margin-bottom:16px;background:#fbfbf8}.result.empty{color:var(--muted);display:flex;align-items:center;justify-content:center;min-height:380px;text-align:center}
+.grade{font-size:55px;font-weight:950}.decision{font-size:38px;font-weight:950}.row{display:flex;align-items:center;gap:14px}.verdict{line-height:1.6}.metric{margin:13px 0}.mh{display:flex;justify-content:space-between;font-size:12px;font-weight:750}
+.bar{height:7px;background:var(--soft);border-radius:99px;overflow:hidden;margin-top:5px}.fill{height:100%;background:#222}.call{border-top:1px solid var(--line);margin-top:16px;padding-top:16px}.call h4{font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin:0 0 6px}.call p,.call li{font-size:13px;line-height:1.5}.loading{padding:35px;text-align:center;color:var(--muted)}
+@media(max-width:850px){.stages,.grid{grid-template-columns:1fr}h1{font-size:40px}.head{flex-direction:column}.stage p{min-height:0}}
+</style>
+</head>
+<body>
+<div class="container"><div class="top">JML&nbsp; <span style="color:#777;font-weight:650">Startup Evaluation</span></div></div>
+<main id="home"><div class="container hero">
+<div class="eyebrow">Joon Mahn Lee's Startup Evaluation</div><h1>Is your startup idea actually solid?</h1>
+<p class="lead">The standard gets tougher as the venture develops — from identifying a compelling opportunity to making a credible investment case.</p>
+<div class="stages">
+<button class="stage" onclick="openStage('s1')"><div class="eyebrow">Stage 01</div><h3>Elevator Pitch</h3><p>One minute. Make the problem, customer pain, and market potential clear.</p><div class="core">Problem → Pain → Market</div></button>
+<button class="stage" onclick="openStage('s2')"><div class="eyebrow">Stage 02</div><h3>Idea Development</h3><p>Show that the venture logic is beginning to hold up under evidence.</p><div class="core">Pain → Fit → Money → Evidence → Team</div></button>
+<button class="stage" onclick="openStage('s3')"><div class="eyebrow">Stage 03</div><h3>Final Presentation</h3><p>Upload your final PDF. The evaluator reads it like a VC investment committee.</p><div class="core">Would I invest?</div></button>
+</div></div></main>
+
+<section id="s1" class="page"><div class="container">
+<button class="back" onclick="home()">← Back</button><div class="head"><div><div class="eyebrow">Stage 01</div><h2>Elevator Pitch</h2><p>One minute. Only three things need to be clear.</p></div><div class="pill">Is this worth pursuing?</div></div>
+<div class="grid"><div class="card">
+<div class="field"><label>1. What problem have you identified?</label><textarea id="s1problem"></textarea></div>
+<div class="field"><label>2. Who experiences this problem, and how painful is it?</label><textarea id="s1pain"></textarea></div>
+<div class="field"><label>3. Why could this become a large opportunity?</label><textarea id="s1market"></textarea></div>
+<div class="field"><label>Optional: Rough solution</label><textarea id="s1solution"></textarea></div>
+<button class="primary" onclick="eval1()">Evaluate My Opportunity</button></div>
+<div class="card result empty" id="r1">Your evaluation will appear here.</div></div></div></section>
+
+<section id="s2" class="page"><div class="container">
+<button class="back" onclick="home()">← Back</button><div class="head"><div><div class="eyebrow">Stage 02</div><h2>Idea Development</h2><p>Now show that your core assumptions are becoming credible.</p></div><div class="pill">Pain → Fit → Money → Team</div></div>
+<div class="grid"><div class="card">
+<div class="field"><label>1. Problem + evidence that the pain is real</label><textarea id="pEvidence"></textarea></div>
+<div class="field"><label>2. Root cause / core bottleneck</label><textarea id="rootCause"></textarea></div>
+<div class="field"><label>3. How does your solution attack it?</label><textarea id="solution2"></textarea></div>
+<div class="field"><label>4. How large can this become?</label><textarea id="market2"></textarea></div>
+<div class="field"><label>5. How will the venture make money?</label><textarea id="model2"></textarea></div>
+<div class="field"><label>6. What have you tested, and what changed your mind?</label><textarea id="learning2"></textarea></div>
+<div class="field"><label>7. Why is your team a good fit?</label><textarea id="team2"></textarea></div>
+<button class="primary" onclick="eval2()">Evaluate My Venture</button></div>
+<div class="card result empty" id="r2">Your evaluation will appear here.</div></div></div></section>
+
+<section id="s3" class="page"><div class="container">
+<button class="back" onclick="home()">← Back</button><div class="head"><div><div class="eyebrow">Stage 03</div><h2>Final Presentation</h2><p>Save your final slides as PDF and upload them here.</p></div><div class="pill">Would I invest?</div></div>
+<div class="grid"><div class="card">
+<div class="upload"><strong>Final Presentation PDF</strong><br><span class="small">PDF only for version 1 · max 25 MB</span><br><br><input id="deck" type="file" accept=".pdf,application/pdf"></div>
+<div class="field"><label>Optional: Single most important point</label><textarea id="mainPoint"></textarea></div>
+<div class="field"><label>Optional: Current team</label><textarea id="team3"></textarea></div>
+<div class="field"><label>Optional: Important information omitted from deck</label><textarea id="omitted3"></textarea></div>
+<button class="primary" onclick="eval3()">Evaluate Like a VC</button></div>
+<div class="card result empty" id="r3">Your investment-committee evaluation will appear here.</div></div></div></section>
+
+<script>
+const qs=id=>document.getElementById(id);
+function openStage(id){qs('home').style.display='none';document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));qs(id).classList.add('active');scrollTo(0,0)}
+function home(){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));qs('home').style.display='block';scrollTo(0,0)}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function metric(name,val,max){return `<div class="metric"><div class="mh"><span>${esc(name)}</span><span>${val} / ${max}</span></div><div class="bar"><div class="fill" style="width:${Math.min(100,val/max*100)}%"></div></div></div>`}
+function loading(id){qs(id).className='card result';qs(id).innerHTML='<div class="loading">Evaluating…</div>'}
+function error(id,e){qs(id).className='card result';qs(id).innerHTML=`<p><strong>Could not evaluate.</strong></p><p class="small">${esc(e)}</p>`}
+async function postJSON(url,body){let r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});let j=await r.json();if(!r.ok)throw new Error(j.error||'Request failed');return j}
+
+async function eval1(){
+ loading('r1');
+ try{
+  const d=await postJSON('/api/stage1',{problem:qs('s1problem').value,pain:qs('s1pain').value,market:qs('s1market').value,solution:qs('s1solution').value});
+  qs('r1').innerHTML=`<div class="eyebrow">JML Evaluation</div><div class="row"><div class="grade">${d.grade}</div><div><strong>${d.score} / 100</strong></div></div><p class="verdict">${esc(d.verdict)}</p>${metric('Problem',d.problem,10)}${metric('Customer Pain',d.pain,10)}${metric('Market & Venture Potential',d.market,10)}<div class="call"><h4>KRW 200B Potential</h4><p><strong>${esc(d.scale_test)}</strong></p></div><div class="call"><h4>The One Thing to Clarify Next</h4><p>${esc(d.next_question)}</p></div>`;
+ }catch(e){error('r1',e.message)}
+}
+async function eval2(){
+ loading('r2');
+ try{
+  const d=await postJSON('/api/stage2',{problemEvidence:qs('pEvidence').value,rootCause:qs('rootCause').value,solution:qs('solution2').value,market:qs('market2').value,businessModel:qs('model2').value,learning:qs('learning2').value,team:qs('team2').value});
+  qs('r2').innerHTML=`<div class="eyebrow">JML Evaluation</div><div class="row"><div class="grade">${d.grade}</div><div><strong>${d.score} / 100</strong></div></div><p class="verdict">${esc(d.verdict)}</p>${metric('Problem & Pain',d.problem_pain,20)}${metric('Problem–Solution Fit',d.problem_solution_fit,25)}${metric('Market & Scale',d.market_scale,20)}${metric('Business Model',d.business_model,15)}${metric('Evidence & Learning',d.evidence_learning,10)}${metric('Team–Venture Fit',d.team_fit_score,10)}<div class="call"><h4>KRW 200B Venture Test</h4><p><strong>${esc(d.scale_test)}</strong></p></div><div class="call"><h4>Biggest Concern</h4><p>${esc(d.biggest_concern)}</p></div><div class="call"><h4>Team–Venture Fit</h4><p><strong>${esc(d.team_fit)}</strong> — ${esc(d.team_fit_explanation)}<br>Missing: ${esc(d.missing_capability)}</p></div><div class="call"><h4>Venture-Killing Assumption</h4><p>This venture fails if ${esc(d.venture_killing_assumption)}</p></div><div class="call"><h4>What Would Move This Up?</h4><ol>${d.move_up.map(x=>`<li>${esc(x)}</li>`).join('')}</ol></div><div class="call"><h4>VC Question</h4><p>${esc(d.vc_question)}</p></div>`;
+ }catch(e){error('r2',e.message)}
+}
+async function eval3(){
+ loading('r3');
+ try{
+  const f=qs('deck').files[0];if(!f)throw new Error('Please select a PDF first.');
+  const fd=new FormData();fd.append('deck',f);fd.append('mainPoint',qs('mainPoint').value);fd.append('team',qs('team3').value);fd.append('omitted',qs('omitted3').value);
+  const r=await fetch('/api/stage3',{method:'POST',body:fd});const d=await r.json();if(!r.ok)throw new Error(d.error||'Request failed');
+  qs('r3').innerHTML=`<div class="eyebrow">Investment Committee View</div><div class="row"><div class="decision">${esc(d.decision)}</div><div><strong>${d.score} / 100 — ${d.grade}</strong></div></div><p class="verdict">${esc(d.verdict)}</p>${metric('Opportunity Validation',d.opportunity_validation,12)}${metric('Solution Logic',d.solution_logic,12)}${metric('Market & Positioning',d.market_positioning,15)}${metric('Business & Economics',d.business_economics,15)}${metric('GTM & Execution',d.gtm_execution,10)}${metric('Defensibility',d.defensibility,8)}${metric('Team–Venture Fit',d.team_fit_score,10)}${metric('Risk Awareness',d.risk_awareness,8)}${metric('Strategic Coherence',d.coherence,5)}${metric('Presentation',d.presentation,5)}<div class="call"><h4>KRW 200B Venture Test</h4><p><strong>${esc(d.scale_test)}</strong></p></div><div class="call"><h4>Investment Thesis</h4><p>${esc(d.investment_thesis)}</p></div><div class="call"><h4>Biggest Concern</h4><p>${esc(d.biggest_concern)}</p></div><div class="call"><h4>Team–Venture Fit</h4><p><strong>${esc(d.team_fit)}</strong> — ${esc(d.team_fit_explanation)}<br>Missing: ${esc(d.missing_capability)}</p></div><div class="call"><h4>Venture-Killing Assumption</h4><p>This venture fails if ${esc(d.venture_killing_assumption)}</p></div><div class="call"><h4>Three Things Needed Before I Invest</h4><ol>${d.before_invest.map(x=>`<li>${esc(x)}</li>`).join('')}</ol></div><div class="call"><h4>Investment Committee Questions</h4><ol>${d.ic_questions.map(x=>`<li>${esc(x)}</li>`).join('')}</ol></div>`;
+ }catch(e){error('r3',e.message)}
+}
+</script>
+</body></html>
